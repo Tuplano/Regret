@@ -24,10 +24,8 @@ export default function MemeGenerator() {
   const [resizing, setResizing] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isFlipped, setIsFlipped] = useState(false);
-
   const [initialScale, setInitialScale] = useState(1);
   const [initialDistance, setInitialDistance] = useState(0);
-
   const [showHandle, setShowHandle] = useState(true);
 
   const assets: Record<"base", LayerOption[]> = {
@@ -63,43 +61,54 @@ export default function MemeGenerator() {
     maxWidth: number,
     lineHeight: number
   ) {
-    const words = text.split(" ");
-    let line = "";
+    const words = text.split("");
     const lines: string[] = [];
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + " ";
+    let currentLine = "";
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = currentLine + words[i];
       const testWidth = ctx.measureText(testLine).width;
-      if (testWidth > maxWidth && n > 0) {
-        lines.push(line.trim());
-        line = words[n] + " ";
-      } else line = testLine;
+
+      if (testWidth > maxWidth && currentLine !== "") {
+        lines.push(currentLine);
+        currentLine = words[i];
+        if (lines.length >= 2) break;
+      } else {
+        currentLine = testLine;
+      }
     }
-    lines.push(line.trim());
-    for (let i = 0; i < lines.length; i++) {
+    if (lines.length < 2) lines.push(currentLine);
+
+    for (let i = 0; i < lines.length && i < 2; i++) {
       const lineY = y + i * lineHeight;
       ctx.strokeText(lines[i], x, lineY);
       ctx.fillText(lines[i], x, lineY);
     }
   }
 
-  const getLineCount = (
+  function getLineCount(
     text: string,
     maxWidth: number,
     ctx: CanvasRenderingContext2D
-  ) => {
-    const words = text.split(" ");
-    let line = "";
+  ) {
+    const words = text.split("");
     let lines = 1;
+    let currentLine = "";
+
     for (let i = 0; i < words.length; i++) {
-      const testLine = line + words[i] + " ";
+      const testLine = currentLine + words[i];
       const testWidth = ctx.measureText(testLine).width;
-      if (testWidth > maxWidth && line !== "") {
-        line = words[i] + " ";
+
+      if (testWidth > maxWidth && currentLine !== "") {
         lines++;
-      } else line = testLine;
+        currentLine = words[i];
+      } else {
+        currentLine = testLine;
+      }
+      if (lines >= 2) break;
     }
     return lines;
-  };
+  }
 
   const handleTextChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -128,6 +137,7 @@ export default function MemeGenerator() {
     ctx.imageSmoothingQuality = "high";
 
     let animationFrameId: number;
+
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
 
@@ -184,16 +194,21 @@ export default function MemeGenerator() {
       ctx.font = "bold 64px Impact, Arial, sans-serif";
       ctx.fillStyle = "white";
       ctx.strokeStyle = "black";
-      ctx.lineWidth = 6;
-      ctx.shadowColor = "rgba(0,0,0,0.4)";
-      ctx.shadowBlur = 2;
+      ctx.lineWidth = 8;
+      ctx.lineJoin = "round";
+      ctx.miterLimit = 2;
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = 1.5;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
 
       const maxWidth = w - 80;
       const lineHeight = 70;
 
       if (topText.trim()) wrapText(ctx, topText, w / 2, 100, maxWidth, lineHeight);
       if (bottomText.trim()) {
-        const totalHeight = getLineCount(bottomText, maxWidth, ctx) * lineHeight;
+        const totalHeight =
+          getLineCount(bottomText, maxWidth, ctx) * lineHeight;
         const startY = h - 100 - totalHeight + lineHeight;
         wrapText(ctx, bottomText, w / 2, startY, maxWidth, lineHeight);
       }
@@ -283,7 +298,7 @@ export default function MemeGenerator() {
     setShowHandle(false);
     requestAnimationFrame(() => {
       const link = document.createElement("a");
-      link.download = "meme_pfp.png";
+      link.download = "regret_meme.png";
       link.href = canvasRef.current!.toDataURL("image/png");
       link.click();
       setTimeout(() => setShowHandle(true), 200);
@@ -370,6 +385,7 @@ export default function MemeGenerator() {
               className="rounded-2xl object-contain w-full h-full"
             />
           </div>
+
           <button
             onClick={toggleFlip}
             className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-sm mt-2"

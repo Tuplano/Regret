@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { FaXTwitter, FaChartBar, FaTiktok, FaInstagram } from "react-icons/fa6";
 import { SiCoinmarketcap } from "react-icons/si";
 import MemeGenerator from "./components/MemeGenerator";
@@ -31,30 +32,30 @@ export default function HomePage() {
           REGRET
         </div>
       </div>
-      <section className="flex flex-col items-center justify-center min-h-[90vh] gap-6 z-10  px-4 text-center">
+
+      <section className="flex flex-col items-center justify-center min-h-[90vh] gap-6 z-10 px-4 text-center">
         <img
           src="/assets/logo.jpeg"
           alt="regret logo"
-          className="w-32 h-32 rounded-full shadow-[0_0_30px_#00000055]  delay-100"
+          className="w-32 h-32 rounded-full shadow-[0_0_30px_#00000055]"
         />
 
-        {/* Title */}
         <h1 className="text-6xl md:text-7xl font-extrabold tracking-wide text-white drop-shadow-[0_0_10px_#ffffff55] animate-pulse">
           $REGRET
         </h1>
 
-        <p className="text-gray-400 text-sm md:text-base italic mt-1  delay-200">
+        <p className="text-gray-400 text-sm md:text-base italic mt-1">
           You either regret buying or regret selling
         </p>
 
-        <p className="text-sm mt-3 text-gray-400 tracking-wider animate-fade-up delay-300">
+        <p className="text-sm mt-3 text-gray-400 tracking-wider animate-fade-up">
           Contract Address:
         </p>
-        <div className="bg-[#1c1c1c] rounded-xl px-4 py-2 border border-[#333] font-mono text-sm animate-fade-up delay-400">
+        <div className="bg-[#1c1c1c] rounded-xl px-4 py-2 border border-[#333] font-mono text-sm animate-fade-up">
           DP4omjjy94NRJrECHBzyUQSpGrjtukoDyUbqb9Zzpump
         </div>
 
-        <div className="flex gap-3 mt-6 animate-fade-up delay-500">
+        <div className="flex gap-3 mt-6 animate-fade-up">
           <button
             onClick={() => setOpen(true)}
             className="bg-white text-black px-5 py-2 rounded-xl font-semibold hover:bg-gray-200 hover:-translate-y-1 transition-all duration-300"
@@ -63,46 +64,63 @@ export default function HomePage() {
           </button>
         </div>
 
-        <div className="flex gap-5 mt-8 text-xl text-gray-400 animate-fade-up delay-600">
+        <div className="flex items-center gap-6 mt-8 text-xl text-gray-400 animate-fade-up">
           <a
             href="https://x.com/i/communities/1965671500255514703"
             target="_blank"
             rel="noopener noreferrer"
+            className="transition-transform duration-300 hover:scale-125 hover:-translate-y-1 hover:text-white"
           >
-            <FaXTwitter className="hover:text-white cursor-pointer transition-transform hover:scale-110 duration-300" />
+            <FaXTwitter />
           </a>
-
           <a
             href="https://dexscreener.com/solana/ccyufsfkwbor2ak9zygfcj18eblqwrrnjebpbc6hkcm8"
             target="_blank"
             rel="noopener noreferrer"
+            className="transition-transform duration-300 hover:scale-125 hover:-translate-y-1 hover:text-white"
           >
-            <FaChartBar className="hover:text-white cursor-pointer transition-transform hover:scale-110 duration-300" />
+            <FaChartBar />
           </a>
           <a
             href="https://www.tiktok.com/@regretonpump"
             target="_blank"
             rel="noopener noreferrer"
+            className="transition-transform duration-300 hover:scale-125 hover:-translate-y-1 hover:text-white"
           >
-            <FaTiktok className="hover:text-white cursor-pointer transition-transform hover:scale-110 duration-300" />
+            <FaTiktok />
           </a>
           <a
             href="https://www.instagram.com/regretonpump/"
             target="_blank"
             rel="noopener noreferrer"
+            className="transition-transform duration-300 hover:scale-125 hover:-translate-y-1 hover:text-white"
           >
-            <FaInstagram className="hover:text-white cursor-pointer transition-transform hover:scale-110 duration-300" />
+            <FaInstagram />
           </a>
           <a
             href="https://coinmarketcap.com/currencies/regret/"
             target="_blank"
             rel="noopener noreferrer"
+            className="transition-transform duration-300 hover:scale-125 hover:-translate-y-1 hover:text-white"
           >
-            <SiCoinmarketcap className="hover:text-white cursor-pointer transition-transform hover:scale-110 duration-300" />
+            <SiCoinmarketcap />
+          </a>
+          <a
+            href="https://www.coingecko.com/en/coins/regret"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-transform duration-300 hover:scale-125 hover:-translate-y-1 hover:text-white"
+          >
+            <Image
+              src="/assets/CG-Symbol.svg"
+              alt="regret mascot"
+              width={23}
+              height={23}
+            />
           </a>
         </div>
       </section>
-      {/* Dexscreener Live Chart Section */}
+
       <section className="w-full flex flex-col items-center mt-24">
         <h2 className="text-3xl font-semibold mb-8 tracking-wide text-white/90">
           Live Chart
@@ -116,7 +134,7 @@ export default function HomePage() {
           ></iframe>
         </div>
       </section>
-      {/* Modal with Avatar Customizer */}
+
       <Modal open={open} onClose={() => setOpen(false)}>
         <MemeGenerator />
       </Modal>

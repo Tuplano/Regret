@@ -15,15 +15,19 @@ export default function MemeGenerator() {
   const [topText, setTopText] = useState("");
   const [bottomText, setBottomText] = useState("");
 
-  const [position, setPosition] = useState({ x: 60, y: 60 });
+  // Static visual states
   const [scale, setScale] = useState(1);
-  const [dragging, setDragging] = useState(false);
-  const [resizing, setResizing] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isFlipped, setIsFlipped] = useState(false);
-  const [initialScale, setInitialScale] = useState(1);
-  const [initialDistance, setInitialDistance] = useState(1);
   const [showHandle, setShowHandle] = useState(true);
+
+  // Ref states for performance
+  const posRef = useRef({ x: 60, y: 60 });
+  const scaleRef = useRef(1);
+  const draggingRef = useRef(false);
+  const resizingRef = useRef(false);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  const initialScaleRef = useRef(1);
+  const initialDistanceRef = useRef(1);
 
   const assets: Record<"base", LayerOption[]> = {
     base: [
@@ -77,11 +81,11 @@ export default function MemeGenerator() {
     }
   }
 
-  function getLineCount(
+  const getLineCount = (
     text: string,
     maxWidth: number,
     ctx: CanvasRenderingContext2D
-  ) {
+  ) => {
     const chars = text.split("");
     let lines = 1;
     let current = "";
@@ -94,7 +98,7 @@ export default function MemeGenerator() {
       if (lines >= 2) break;
     }
     return lines;
-  }
+  };
 
   const handleTextChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -110,10 +114,12 @@ export default function MemeGenerator() {
     if (getLineCount(value, maxWidth, ctx) <= 2) setter(value);
   };
 
+  // DRAW LOOP — runs independently, smooth 60 FPS
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
+
     const DPR = Math.max(1, window.devicePixelRatio || 1);
     const w = 840;
     const h = 840;
@@ -122,10 +128,12 @@ export default function MemeGenerator() {
     ctx.scale(DPR, DPR);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    let raf = 0;
 
+    let raf = 0;
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
+
+      // Background
       if (bgImageRef.current) {
         const bg = bgImageRef.current;
         const canvasRatio = w / h;
@@ -147,38 +155,38 @@ export default function MemeGenerator() {
         ctx.fillStyle = background;
         ctx.fillRect(0, 0, w, h);
       }
+
+      // Base image
       if (baseImageRef.current) {
         const base = baseImageRef.current;
-        const size = 300 * scale * 2;
-        const x = position.x * 2;
-        const y = position.y * 2;
+        const { x, y } = posRef.current;
+        const size = 300 * scaleRef.current * 2;
         ctx.save();
         if (isFlipped) {
-          ctx.translate(x + size / 2, 0);
+          ctx.translate(x * 2 + size / 2, 0);
           ctx.scale(-1, 1);
-          ctx.drawImage(base, -size / 2, y, size, size);
-        } else ctx.drawImage(base, x, y, size, size);
+          ctx.drawImage(base, -size / 2, y * 2, size, size);
+        } else ctx.drawImage(base, x * 2, y * 2, size, size);
         ctx.restore();
+
         if (showHandle) {
           ctx.save();
           ctx.strokeStyle = "white";
           ctx.lineWidth = 2;
           ctx.fillStyle = "rgba(255,255,255,0.15)";
-          ctx.fillRect(x + size - 20, y + size - 20, 20, 20);
-          ctx.strokeRect(x + size - 20, y + size - 20, 20, 20);
+          ctx.fillRect(x * 2 + size - 20, y * 2 + size - 20, 20, 20);
+          ctx.strokeRect(x * 2 + size - 20, y * 2 + size - 20, 20, 20);
           ctx.restore();
         }
       }
+
+      // Text
       ctx.textAlign = "center";
       ctx.font = "bold 64px Impact, Arial, sans-serif";
       ctx.fillStyle = "white";
       ctx.strokeStyle = "black";
       ctx.lineWidth = 8;
       ctx.lineJoin = "round";
-      ctx.shadowColor = "rgba(0,0,0,0.35)";
-      ctx.shadowBlur = 1.5;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
       const maxWidth = w - 80;
       const lineHeight = 70;
       if (topText.trim()) wrapText(ctx, topText, w / 2, 100, maxWidth, lineHeight);
@@ -187,12 +195,13 @@ export default function MemeGenerator() {
         const startY = h - 100 - totalHeight + lineHeight;
         wrapText(ctx, bottomText, w / 2, startY, maxWidth, lineHeight);
       }
+
       raf = requestAnimationFrame(draw);
     };
 
     draw();
     return () => cancelAnimationFrame(raf);
-  }, [background, topText, bottomText, position, scale, isFlipped, showHandle, backgroundImage]);
+  }, [background, topText, bottomText, isFlipped, showHandle, backgroundImage]);
 
   const isInResizeHandle = (clientX: number, clientY: number) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -200,10 +209,10 @@ export default function MemeGenerator() {
     const y = clientY - rect.top;
     const cssSize = rect.width;
     const logicalToCss = cssSize / 420;
-    const size = 300 * scale * logicalToCss;
+    const size = 300 * scaleRef.current * logicalToCss;
     const handleSize = 24;
-    const handleX = position.x * logicalToCss + size;
-    const handleY = position.y * logicalToCss + size;
+    const handleX = posRef.current.x * logicalToCss + size;
+    const handleY = posRef.current.y * logicalToCss + size;
     return (
       x >= handleX - handleSize &&
       x <= handleX + handleSize &&
@@ -217,53 +226,66 @@ export default function MemeGenerator() {
     const px = e.clientX;
     const py = e.clientY;
     if (isInResizeHandle(px, py)) {
-      setResizing(true);
+      resizingRef.current = true;
       const x = px - rect.left;
       const y = py - rect.top;
-      const centerX = position.x + 150 * scale;
-      const centerY = position.y + 150 * scale;
+      const centerX = posRef.current.x + 150 * scaleRef.current;
+      const centerY = posRef.current.y + 150 * scaleRef.current;
       const dx = (x / (rect.width / 420)) - centerX;
       const dy = (y / (rect.height / 420)) - centerY;
-      setInitialDistance(Math.sqrt(dx * dx + dy * dy) || 1);
-      setInitialScale(scale);
+      initialDistanceRef.current = Math.sqrt(dx * dx + dy * dy) || 1;
+      initialScaleRef.current = scaleRef.current;
     } else {
-      setDragging(true);
-      setOffset({
-        x: e.clientX - rect.left - position.x * (rect.width / 420),
-        y: e.clientY - rect.top - position.y * (rect.height / 420),
-      });
+      draggingRef.current = true;
+      offsetRef.current = {
+        x: e.clientX - rect.left - posRef.current.x * (rect.width / 420),
+        y: e.clientY - rect.top - posRef.current.y * (rect.height / 420),
+      };
     }
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
 
   const handlePointerUp = () => {
-    setDragging(false);
-    setResizing(false);
+    draggingRef.current = false;
+    resizingRef.current = false;
+    setScale(scaleRef.current);
   };
 
+  let lastMove = 0;
   const handlePointerMove = (e: React.PointerEvent) => {
+    const now = performance.now();
+    if (now - lastMove < 16) return; // throttle to ~60fps
+    lastMove = now;
+
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleFactor = rect.width / 420;
-    if (resizing) {
-      const centerX = position.x + 150 * initialScale;
-      const centerY = position.y + 150 * initialScale;
+
+    if (resizingRef.current) {
+      const centerX = posRef.current.x + 150 * initialScaleRef.current;
+      const centerY = posRef.current.y + 150 * initialScaleRef.current;
       const logicalX = (e.clientX - rect.left) / scaleFactor;
       const logicalY = (e.clientY - rect.top) / scaleFactor;
       const dx = logicalX - centerX;
       const dy = logicalY - centerY;
       const currentDistance = Math.sqrt(dx * dx + dy * dy);
-      const scaleFactorNew = currentDistance / initialDistance;
-      setScale(Math.max(0.3, Math.min(3, initialScale * scaleFactorNew)));
-    } else if (dragging) {
-      const newX = (e.clientX - rect.left - offset.x) / scaleFactor;
-      const newY = (e.clientY - rect.top - offset.y) / scaleFactor;
-      setPosition({ x: Math.max(0, newX), y: Math.max(0, newY) });
+      const newScale = Math.max(
+        0.3,
+        Math.min(3, initialScaleRef.current * (currentDistance / initialDistanceRef.current))
+      );
+      scaleRef.current = newScale;
+    } else if (draggingRef.current) {
+      const newX = (e.clientX - rect.left - offsetRef.current.x) / scaleFactor;
+      const newY = (e.clientY - rect.top - offsetRef.current.y) / scaleFactor;
+      posRef.current = { x: Math.max(0, newX), y: Math.max(0, newY) };
     }
-    if (canvasRef.current) {
-      const overHandle = isInResizeHandle(e.clientX, e.clientY);
-      canvasRef.current.style.cursor = overHandle ? "nwse-resize" : dragging ? "grabbing" : "grab";
-    }
+
+    const overHandle = isInResizeHandle(e.clientX, e.clientY);
+    canvasRef.current.style.cursor = overHandle
+      ? "nwse-resize"
+      : draggingRef.current
+      ? "grabbing"
+      : "grab";
   };
 
   const toggleFlip = () => setIsFlipped((s) => !s);
@@ -277,50 +299,52 @@ export default function MemeGenerator() {
       const ctx = exportCanvas.getContext("2d")!;
       if (bgImageRef.current) {
         const bg = bgImageRef.current;
-        const canvasRatio = exportCanvas.width / exportCanvas.height;
+        const canvasRatio = 1;
         const imgRatio = bg.width / bg.height;
         let drawWidth, drawHeight, offsetX, offsetY;
         if (imgRatio > canvasRatio) {
-          drawHeight = exportCanvas.height;
-          drawWidth = bg.width * (exportCanvas.height / bg.height);
-          offsetX = (exportCanvas.width - drawWidth) / 2;
+          drawHeight = 840;
+          drawWidth = bg.width * (840 / bg.height);
+          offsetX = (840 - drawWidth) / 2;
           offsetY = 0;
         } else {
-          drawWidth = exportCanvas.width;
-          drawHeight = bg.height * (exportCanvas.width / bg.width);
+          drawWidth = 840;
+          drawHeight = bg.height * (840 / bg.width);
           offsetX = 0;
-          offsetY = (exportCanvas.height - drawHeight) / 2;
+          offsetY = (840 - drawHeight) / 2;
         }
         ctx.drawImage(bg, offsetX, offsetY, drawWidth, drawHeight);
       } else {
         ctx.fillStyle = background;
-        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+        ctx.fillRect(0, 0, 840, 840);
       }
+
       if (baseImageRef.current) {
         ctx.save();
-        const size = 300 * scale * 2;
-        const x = position.x * 2;
-        const y = position.y * 2;
+        const { x, y } = posRef.current;
+        const size = 300 * scaleRef.current * 2;
         if (isFlipped) {
-          ctx.translate(x + size / 2, 0);
+          ctx.translate(x * 2 + size / 2, 0);
           ctx.scale(-1, 1);
-          ctx.drawImage(baseImageRef.current, -size / 2, y, size, size);
-        } else ctx.drawImage(baseImageRef.current, x, y, size, size);
+          ctx.drawImage(baseImageRef.current, -size / 2, y * 2, size, size);
+        } else ctx.drawImage(baseImageRef.current, x * 2, y * 2, size, size);
         ctx.restore();
       }
+
       ctx.textAlign = "center";
       ctx.font = "bold 64px Impact, Arial, sans-serif";
       ctx.fillStyle = "white";
       ctx.strokeStyle = "black";
       ctx.lineWidth = 8;
-      const maxWidth = exportCanvas.width - 80;
+      const maxWidth = 840 - 80;
       const lineHeight = 70;
-      if (topText.trim()) wrapText(ctx, topText, exportCanvas.width / 2, 100, maxWidth, lineHeight);
+      if (topText.trim()) wrapText(ctx, topText, 420, 100, maxWidth, lineHeight);
       if (bottomText.trim()) {
         const totalHeight = getLineCount(bottomText, maxWidth, ctx) * lineHeight;
-        const startY = exportCanvas.height - 100 - totalHeight + lineHeight;
-        wrapText(ctx, bottomText, exportCanvas.width / 2, startY, maxWidth, lineHeight);
+        const startY = 840 - 100 - totalHeight + lineHeight;
+        wrapText(ctx, bottomText, 420, startY, maxWidth, lineHeight);
       }
+
       const link = document.createElement("a");
       link.download = "regret_meme.png";
       link.href = exportCanvas.toDataURL("image/png");
@@ -332,11 +356,13 @@ export default function MemeGenerator() {
   return (
     <div className="w-full h-full flex items-center justify-center text-white overflow-hidden p-4 select-none">
       <div className="flex flex-col md:flex-row w-full h-full gap-4">
+        {/* Sidebar */}
         <aside className="w-full md:w-64 md:border-r border-white/10 flex flex-col justify-between p-4 md:p-6 bg-transparent">
           <div>
             <h1 className="text-2xl font-light mb-5 tracking-wide text-center md:text-left">
               Meme Generator
             </h1>
+
             <h2 className="text-sm uppercase tracking-wide text-gray-400 mb-3">
               Base Options
             </h2>
@@ -348,7 +374,6 @@ export default function MemeGenerator() {
                   className={`group relative cursor-pointer rounded-xl border border-white/10 overflow-hidden bg-white/5 hover:bg-white/10 transition p-1 ${
                     selectedBase === item.src ? "ring-2 ring-white/40" : ""
                   }`}
-                  aria-pressed={selectedBase === item.src}
                 >
                   <img
                     src={item.src}
@@ -372,7 +397,6 @@ export default function MemeGenerator() {
                   setBackgroundImage(null);
                 }}
                 className="w-10 h-10 rounded-md cursor-pointer border-none outline-none"
-                aria-label="background color"
               />
             </div>
 
@@ -399,28 +423,29 @@ export default function MemeGenerator() {
 
           <div className="mt-6">
             <p className="text-xs text-gray-400 mb-2">
-              Tips: Drag image to move. Use handle to resize.
+              Tips: Drag to move. Resize handle bottom-right.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={toggleFlip}
                 className="flex-1 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-sm"
               >
-                Flip Base Image
+                Flip
               </button>
               <button
                 onClick={exportImage}
                 className="flex-1 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-sm"
               >
-                Export PNG
+                Export
               </button>
             </div>
           </div>
         </aside>
 
+        {/* Canvas */}
         <main className="flex-1 flex flex-col items-center justify-start p-2 md:p-6">
           <div
-            className="relative w-full max-w-[320px] sm:max-w-[380px] md:max-w-[420px] aspect-square rounded-2xl border border-white/10 bg-black/30 shadow-[0_0_30px_rgba(255,255,255,0.05)] flex items-center justify-center mx-auto"
+            className="relative w-full max-w-[420px] aspect-square rounded-2xl border border-white/10 bg-black/30 shadow-[0_0_30px_rgba(255,255,255,0.05)] flex items-center justify-center mx-auto"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -431,7 +456,7 @@ export default function MemeGenerator() {
               width={840}
               height={840}
               style={{ width: "100%", height: "100%" }}
-              className="rounded-2xl object-contain"
+              className="rounded-2xl object-contain touch-none"
             />
           </div>
 

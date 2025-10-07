@@ -11,60 +11,62 @@ export default function HomePage() {
   const [open, setOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#121212] via-[#0f0f0f] to-[#0b0b0b] text-white flex flex-col items-center justify-start relative overflow-hidden pb-40">
+    <main className="min-h-screen bg-gradient-to-b from-[#121212] via-[#0f0f0f] to-[#0b0b0b] text-white flex flex-col items-center justify-start relative overflow-hidden pb-32 sm:pb-40">
+      {/* Floating background text */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute text-[6rem] font-black text-white/10 select-none top-20 left-10 blur-[1px] animate-float-1">
-          REGRET
-        </div>
-        <div className="absolute text-[6rem] font-black text-white/10 select-none bottom-20 right-10 blur-[1px] animate-float-2">
-          REGRET
-        </div>
-        <div className="absolute text-[8rem] font-black text-white/15 select-none top-1/2 left-[10%] blur-[2px] animate-float-3">
-          REGRET
-        </div>
-        <div className="absolute text-[5rem] font-black text-white/10 select-none top-32 right-[15%] blur-[1px] animate-float-4">
-          REGRET
-        </div>
-        <div className="absolute text-[7rem] font-black text-white/15 select-none bottom-[10%] left-[5%] blur-[2px] animate-float-5">
-          REGRET
-        </div>
-        <div className="absolute text-[10rem] font-black text-white/5 select-none top-[40%] left-[35%] blur-[3px] animate-float-6">
-          REGRET
-        </div>
+        {[
+          "top-20 left-10",
+          "bottom-20 right-10",
+          "top-1/2 left-[10%]",
+          "top-32 right-[15%]",
+          "bottom-[10%] left-[5%]",
+          "top-[40%] left-[35%]",
+        ].map((pos, i) => (
+          <div
+            key={i}
+            className={`absolute ${pos} font-black select-none blur-[1.5px] text-white/[${
+              i % 2 ? "10" : "15"
+            }] text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[9rem] animate-float-${i + 1}`}
+          >
+            REGRET
+          </div>
+        ))}
       </div>
 
-      <section className="flex flex-col items-center justify-center min-h-[90vh] gap-6 z-10 px-4 text-center">
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center min-h-[85vh] gap-5 sm:gap-6 z-10 px-4 text-center">
         <img
           src="/assets/logo.jpeg"
           alt="regret logo"
-          className="w-32 h-32 rounded-full shadow-[0_0_30px_#00000055]"
+          className="w-24 h-24 sm:w-32 sm:h-32 rounded-full shadow-[0_0_30px_#00000055]"
         />
 
-        <h1 className="text-6xl md:text-7xl font-extrabold tracking-wide text-white drop-shadow-[0_0_10px_#ffffff55] animate-pulse">
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-wide text-white drop-shadow-[0_0_10px_#ffffff55] animate-pulse">
           $REGRET
         </h1>
 
-        <p className="text-gray-400 text-sm md:text-base italic mt-1">
+        <p className="text-gray-400 text-sm sm:text-base italic mt-1">
           You either regret buying or regret selling
         </p>
 
-        <p className="text-sm mt-3 text-gray-400 tracking-wider animate-fade-up">
+        <p className="text-xs sm:text-sm mt-3 text-gray-400 tracking-wider animate-fade-up">
           Contract Address:
         </p>
-        <div className="bg-[#1c1c1c] rounded-xl px-4 py-2 border border-[#333] font-mono text-sm animate-fade-up">
+        <div className="bg-[#1c1c1c] rounded-xl px-3 sm:px-4 py-2 border border-[#333] font-mono text-xs sm:text-sm animate-fade-up break-all max-w-[90vw]">
           DP4omjjY94NRJrECHBZyUQSpGrjtukoDyUbqb9Zzpump
         </div>
 
-        <div className="flex gap-3 mt-6 animate-fade-up">
+        <div className="flex gap-3 mt-5 animate-fade-up">
           <button
             onClick={() => setOpen(true)}
-            className="bg-white text-black px-5 py-2 rounded-xl font-semibold hover:bg-gray-200 hover:-translate-y-1 transition-all duration-300"
+            className="bg-white text-black text-sm sm:text-base px-4 sm:px-5 py-2 rounded-xl font-semibold hover:bg-gray-200 hover:-translate-y-1 transition-all duration-300"
           >
             Create Your Meme
           </button>
         </div>
 
-        <div className="flex items-center gap-6 mt-8 text-xl text-gray-400 animate-fade-up">
+        {/* Social Links */}
+        <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-6 mt-8 text-lg sm:text-xl text-gray-400 animate-fade-up">
           <a
             href="https://x.com/i/communities/1965671500255514703"
             target="_blank"
@@ -114,27 +116,32 @@ export default function HomePage() {
             <Image
               src="/assets/CG-Symbol.svg"
               alt="regret mascot"
-              width={23}
-              height={23}
+              width={20}
+              height={20}
             />
           </a>
         </div>
       </section>
 
-      <section className="w-full flex flex-col items-center mt-24">
-        <h2 className="text-3xl font-semibold mb-8 tracking-wide text-white/90">
+      {/* Live Chart Section */}
+      <section className="w-full flex flex-col items-center mt-16 sm:mt-24 px-4">
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-6 sm:mb-8 tracking-wide text-white/90 text-center">
           Live Chart
         </h2>
-        <div className="w-full max-w-6xl aspect-[16/9] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
-          <iframe
-            src="https://dexscreener.com/solana/Dp4omjjy94NRJrECHBzyUQSpGrjtukoDyUbqb9Zzpump?embed=1&theme=dark"
-            className="w-full h-full"
-            frameBorder="0"
-            allowFullScreen
-          ></iframe>
+
+        <div className="w-full max-w-6xl rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
+          <div className="relative w-full h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px]">
+            <iframe
+              src="https://dexscreener.com/solana/Dp4omjjY94NRJrECHBzyUQSpGrjtukoDyUbqb9Zzpump?embed=1&theme=dark"
+              className="absolute top-0 left-0 w-full h-full rounded-2xl"
+              frameBorder="0"
+              allowFullScreen
+            ></iframe>
+          </div>
         </div>
       </section>
 
+      {/* Modal */}
       <Modal open={open} onClose={() => setOpen(false)}>
         <MemeGenerator />
       </Modal>

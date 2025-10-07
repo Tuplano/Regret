@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 interface ModalProps {
   open: boolean;
@@ -9,19 +9,34 @@ interface ModalProps {
 }
 
 export default function Modal({ open, onClose, children }: ModalProps) {
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-[1200px] h-[700px] max-w-[95vw] max-h-[90vh] bg-white/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
-        {/* Close Button */}
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 backdrop-blur-sm animate-fadeIn px-3 overflow-y-auto">
+      <div className="relative my-8 w-[95vw] max-w-[1200px] bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden md:rounded-3xl">
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-50 text-gray-300 hover:text-white text-xl"
+          className="absolute top-3 right-3 z-50 text-gray-300 hover:text-white text-2xl p-1"
+          aria-label="Close modal"
         >
           ✕
         </button>
-        {children}
+
+        {/* Content area */}
+        <div className="w-full h-full overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -52,7 +52,7 @@ export default function HomePage() {
           Contract Address:
         </p>
         <div className="bg-[#1c1c1c] rounded-xl px-4 py-2 border border-[#333] font-mono text-sm animate-fade-up">
-          DP4omjjy94NRJrECHBzyUQSpGrjtukoDyUbqb9Zzpump
+          DP4omjjY94NRJrECHBZyUQSpGrjtukoDyUbqb9Zzpump
         </div>
 
         <div className="flex gap-3 mt-6 animate-fade-up">
